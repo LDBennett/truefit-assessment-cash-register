@@ -19,3 +19,15 @@ Between some of the phases, I could have made a handoff doc and made token comsu
 ## 5. AI use in project
 
 AI use is kind of a double edged sword for me now. On the one hand, the AI process I now have is great to get code out there, but on the other hand, I'm really not doing as much manual work with it. If this were a full scale app, I still would start it in a similar fashion. I may have split it up a bit more as well. But eventually when applying new features to a growing code base, I think the AI tools would fail much more often. Overall, as I stated above, this is how I would start greenfield apps now. If you did want to see a more manual and less AI-generated appraoch to this, please let me know!
+
+## 6. Verification of AI generated Pieces
+
+Through unit tests was a pretty good indicator of what did and did not work. After everything, I did a few passes of manual testing as well.
+
+## 7. AI Across the Problem
+
+I basically stuck two agents (Antigravity and Claude) on the task. Have them discuss with each other before moving onto me is something I've found to be beneficial.
+
+## 8. Changes, Strengths, Weakness
+
+As stated above, if I had a user story and better understanding of who is using this, that would have driven my frontend a bit more. One of the things I really liked was the ability to upload files through the browser or through the CLI. I feel like this gives users a very unique flexibility when pulling in the repo. Something that was weak was the look and feel for me. While I thought it was functional and definitely worked well enough, I would have loved to really make it shine better. I suppose another weakpoint is the somewhat needless complexity of it? Did it need to be as over-engineered as a stated above? Definitely not. But following the README, I think the ways (DDD, FSD, and SRP) really do make this easy to read / follow and easy to edit / update.
