@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+.env
+.env.local
+.system_generated/
+Thumbs.db
+[dD]esktop.ini
+.DS_Store
