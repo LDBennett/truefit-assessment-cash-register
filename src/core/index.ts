@@ -1,3 +1,4 @@
+export * from './application';
 export * from './domain/calculation';
 export * from './domain/currency';
 export * from './domain/errors';

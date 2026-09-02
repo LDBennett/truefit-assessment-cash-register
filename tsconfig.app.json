@@ -23,5 +23,5 @@
   "references": [
     { "path": "./tsconfig.core.json" }
   ],
-  "include": ["src/web"]
+  "include": ["src/web", "tests/web"]
 }

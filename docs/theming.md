@@ -88,9 +88,8 @@ export function Button({ variant = 'primary', className, ...props }) {
 ## 5. Input Editor & Positional Error Highlighting
 
 A key UX feature is real-time highlighting of invalid input rows and character spans:
-- **Gutter Column:** Shows line numbers (1, 2, 3...) with red warning dots next to lines with errors.
-- **Underline / Squiggle:** Any token identified with a parse error (e.g., column 6 to 10 for underpayment or malformed decimal) is styled with a wavy red underline (`decoration-rose-500 underline decoration-wavy`).
-- **Error Inspector Banner:** Displays an expandable list of diagnostics detailing the exact line, column, and remediation hint. Clicking an error scrolls to and selects the affected characters.
+- **Gutter Column:** Shows line numbers (1, 2, 3...) with red warning indicator dots (`● text-rose-500`) next to lines with errors, scroll-synchronized with the textarea.
+- **Error Inspector Banner:** Displays an interactive list of diagnostics detailing the exact line, column range (inclusive), and remediation hint. Clicking an error automatically focuses the textarea and selects the affected characters via `setSelectionRange(startOffset, endOffset)`.
 
 ---
 

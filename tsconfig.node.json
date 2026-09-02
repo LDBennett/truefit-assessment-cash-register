@@ -20,5 +20,6 @@
     }
   },
   "references": [{ "path": "./tsconfig.core.json" }],
-  "include": ["vite.config.ts", "src/cli", "tests"]
+  "include": ["vite.config.ts", "src/cli", "tests"],
+  "exclude": ["tests/web"]
 }

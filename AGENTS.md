@@ -32,6 +32,7 @@ Build a program that tells a cashier how much change is owed and which denominat
   - **Domain-Driven Design (DDD)** for backend / core domain: Financial models are kept pure and isolated from I/O (Value Objects for `Money`, `Denomination`, `ChangeDistribution`; Domain Services for `CashRegisterService`; Domain Strategy pattern for change algorithms; clear ubiquitous language).
   - **Feature-Sliced Design (FSD)** for frontend: Strict layered structure (`app`, `pages`, `widgets`, `features`, `entities`, `shared`).
   - **Single Responsibility Principle (SRP)** throughout BE and FE: Every class, module, service, and component has exactly one well-defined responsibility and reason to change.
+  - **Frontend Hook Placement:** All React custom hooks (present and future) must strictly reside in a dedicated `hooks/` directory within their respective slice (e.g. `widgets/*/hooks/`, `features/*/hooks/`, `shared/hooks/`) with an `index.ts` export barrel, rather than a `model/` directory.
 - **CLI Ergonomics & Zero Change:** CLI accepts `<inputFile> [outputFile]` (defaulting to `stdout`). Zero-change output is `"0"`. Input validation produces structured line/column diagnostics for CLI error reporting and real-time visual marking in the FE.
 
 ## Working rules for the AI tool on this repo
