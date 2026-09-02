@@ -11,3 +11,7 @@ I decided to go all in on how I'd get an app up and running from the start. Ever
 ## 3. Product Understanding and Feedback Loops
 
 I know this is just a simple assessment, but if this were an actual app for a person or company, I would have loved to understand the product more. For example, what is the main purpose of this app? Who are it's main users? If they have an existing system, what are there painpoints now? Answer to those sort of questions would have lead me to have a better UX and UI for the app. Obviously, mobile works but definitely is not optimized as much as I would have liked to do.
+
+## 4. Probably should have done a handoff more often
+
+Between some of the phases, I could have made a handoff doc and made token comsumption shrink a bit.

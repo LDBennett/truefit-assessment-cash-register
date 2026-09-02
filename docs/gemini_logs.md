@@ -636,6 +636,27 @@ Actualy, update the README.md to better align with the project now
 **Response & Clarifying Questions:**
 (Presented updated README.md overview to Lee.)
 
+---
+
+### Turn 24
+
+#### USER
+```text
+I'm getting multiple versions of pnpm specified in github
+```
+
+#### ASSISTANT
+**Actions Taken:**
+1. Identified the root cause of the GitHub Actions conflict:
+   - `package.json` specifies `"packageManager": "pnpm@11.1.3"`.
+   - `.github/workflows/ci.yml` had `- uses: pnpm/action-setup@v4 with: version: 11`.
+   - In `pnpm/action-setup@v4`, specifying both a `version` input in the action and a `packageManager` field in `package.json` causes the "Multiple versions of pnpm specified" error.
+2. Updated `.github/workflows/ci.yml` to remove the redundant `with: version: 11`. The `pnpm/action-setup@v4` action now automatically and cleanly detects and uses `"packageManager": "pnpm@11.1.3"` directly from `package.json`, maintaining a single source of truth across local development and GitHub Actions CI.
+
+**Response & Clarifying Questions:**
+(Explained the resolution and confirmed that `package.json` is now the sole source of truth for the pnpm version in CI.)
+
+
 
 
 
