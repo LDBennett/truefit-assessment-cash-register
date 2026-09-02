@@ -6,12 +6,7 @@ import { Button, Card, cn } from '@/shared';
 
 import { InputEditorProps } from '../types';
 
-export function InputEditor({
-  value,
-  onChange,
-  diagnostics,
-  className
-}: InputEditorProps) {
+export function InputEditor({ value, onChange, diagnostics, className }: InputEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +57,7 @@ export function InputEditor({
   };
 
   return (
-    <Card className={cn('flex flex-col overflow-hidden', className)}>
+    <Card className={cn('flex flex-col overflow-hidden min-h-120', className)}>
       {/* Editor Header Bar */}
       <div className="flex items-center justify-between px-3.5 py-2 bg-slate-900 border-b border-slate-800 text-xs">
         <div className="flex items-center gap-2">
@@ -109,10 +104,7 @@ export function InputEditor({
             const lineNum = i + 1;
             const hasError = diagnosticsByLine.has(lineNum);
             return (
-              <div
-                key={lineNum}
-                className="h-5 flex items-center justify-end gap-1"
-              >
+              <div key={lineNum} className="h-5 flex items-center justify-end gap-1">
                 {hasError ? (
                   <span
                     className="text-rose-500 font-bold leading-none"
@@ -146,7 +138,7 @@ export function InputEditor({
 
       {/* Diagnostic Inspector Panel */}
       {diagnostics.length > 0 ? (
-        <div className="border-t border-rose-900/40 bg-rose-950/20 p-3 max-h-[140px] overflow-y-auto space-y-1.5 text-xs">
+        <div className="border-t border-rose-900/40 bg-rose-950/20 p-3 min-h-55 overflow-y-auto space-y-1.5 text-xs">
           <div className="flex items-center gap-1.5 text-rose-400 font-medium">
             <AlertCircle size={14} />
             <span>

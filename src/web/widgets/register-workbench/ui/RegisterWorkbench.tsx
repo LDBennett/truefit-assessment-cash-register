@@ -1,4 +1,4 @@
-import { Receipt,RefreshCw } from 'lucide-react';
+import { Receipt, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
 import { CurrencyBadge, TransactionResultRow } from '@/entities';
@@ -8,26 +8,18 @@ import { Badge, Button, Card, cn } from '@/shared';
 import { useRegisterCalculation } from '../hooks';
 import { RegisterWorkbenchProps } from '../types';
 
-export function RegisterWorkbench({
-  currencyCode,
-  divisor,
-  className
-}: RegisterWorkbenchProps) {
+export function RegisterWorkbench({ currencyCode, divisor, className }: RegisterWorkbenchProps) {
   const [inputText, setInputText] = useState<string>(SAMPLES.README);
   const [rerollKey, setRerollKey] = useState<number>(0);
 
-  const {
-    currency,
-    safeDivisor,
-    parseResult,
-    lineItems,
-    formattedOutput
-  } = useRegisterCalculation({
-    inputText,
-    currencyCode,
-    divisor,
-    rerollKey
-  });
+  const { currency, safeDivisor, parseResult, lineItems, formattedOutput } = useRegisterCalculation(
+    {
+      inputText,
+      currencyCode,
+      divisor,
+      rerollKey
+    }
+  );
 
   const handleReroll = () => {
     setRerollKey((prev) => prev + 1);
@@ -42,10 +34,6 @@ export function RegisterWorkbench({
     >
       {/* Left Column: Input Editor & Ingestion Controls (5 cols on desktop) */}
       <div className="lg:col-span-6 space-y-4 flex flex-col">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <SampleLoader onLoadSample={setInputText} />
-        </div>
-
         <InputEditor
           value={inputText}
           onChange={setInputText}
@@ -54,11 +42,9 @@ export function RegisterWorkbench({
         />
 
         <div className="flex items-center justify-between pt-1">
-          <FileUploader
-            onFileLoaded={setInputText}
-            formattedOutput={formattedOutput}
-          />
+          <FileUploader onFileLoaded={setInputText} formattedOutput={formattedOutput} />
         </div>
+        <SampleLoader onLoadSample={setInputText} />
       </div>
 
       {/* Right Column: Real-Time Results & Denominations (7 cols on desktop) */}
@@ -66,9 +52,7 @@ export function RegisterWorkbench({
         {/* Results Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-slate-800">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-slate-200">
-              Calculation Results
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-200">Calculation Results</h2>
             <Badge variant="slate" size="sm" className="font-mono text-xs">
               {lineItems.length} {lineItems.length === 1 ? 'item' : 'items'}
             </Badge>
@@ -98,10 +82,7 @@ export function RegisterWorkbench({
         <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
           {lineItems.length > 0 ? (
             lineItems.map((item) => (
-              <TransactionResultRow
-                key={`${item.lineNumber}-${item.rawLine}`}
-                item={item}
-              />
+              <TransactionResultRow key={`${item.lineNumber}-${item.rawLine}`} item={item} />
             ))
           ) : (
             <Card className="p-8 text-center bg-slate-900/40 border-dashed border-slate-800 flex flex-col items-center justify-center">
@@ -112,7 +93,8 @@ export function RegisterWorkbench({
                 No Valid Transactions to Display
               </h3>
               <p className="text-xs text-slate-500 max-w-sm">
-                Enter valid <code className="text-slate-400">owed,paid</code> pairs in the editor, load a preset, or drag and drop a flat file.
+                Enter valid <code className="text-slate-400">owed,paid</code> pairs in the editor,
+                load a preset, or drag and drop a flat file.
               </p>
             </Card>
           )}

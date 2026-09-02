@@ -12,7 +12,7 @@ export function Footer() {
           <div className="hidden sm:flex items-center gap-1.5">
             <Terminal size={13} className="text-slate-400" />
             <span>
-              CLI: <code className="text-slate-400">tsx src/cli/index.ts &lt;file&gt;</code>
+              CLI: <code className="text-slate-400">pnpm run cli &lt;file&gt;</code>
             </span>
           </div>
         </div>
