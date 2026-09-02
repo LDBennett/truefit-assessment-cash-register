@@ -1,13 +1,16 @@
-import { UnderpaidError } from '@core/domain/errors/DomainErrors';
-import { Money } from '@core/domain/model/Money';
-import { RegisterTransaction } from '@core/domain/model/RegisterTransaction';
+import {
+  createMoney,
+  createTransaction,
+  isZeroMoney,
+  UnderpaidError
+} from '@core/index';
 import { describe, expect, it } from 'vitest';
 
-describe('RegisterTransaction Value Object', () => {
+describe('RegisterTransaction (Functional Value Object)', () => {
   it('creates transaction and computes changeDue when paid > owed', () => {
-    const owed = new Money(212);
-    const paid = new Money(300);
-    const tx = new RegisterTransaction(owed, paid);
+    const owed = createMoney(212);
+    const paid = createMoney(300);
+    const tx = createTransaction(owed, paid);
 
     expect(tx.owed.minorUnits).toBe(212);
     expect(tx.paid.minorUnits).toBe(300);
@@ -15,18 +18,18 @@ describe('RegisterTransaction Value Object', () => {
   });
 
   it('creates transaction with zero changeDue when owed === paid (exact payment)', () => {
-    const owed = new Money(200);
-    const paid = new Money(200);
-    const tx = new RegisterTransaction(owed, paid);
+    const owed = createMoney(200);
+    const paid = createMoney(200);
+    const tx = createTransaction(owed, paid);
 
-    expect(tx.changeDue.isZero()).toBe(true);
+    expect(isZeroMoney(tx.changeDue)).toBe(true);
     expect(tx.changeDue.minorUnits).toBe(0);
   });
 
   it('throws UnderpaidError directly when paid < owed before any subtraction', () => {
-    const owed = new Money(300);
-    const paid = new Money(212);
+    const owed = createMoney(300);
+    const paid = createMoney(212);
 
-    expect(() => new RegisterTransaction(owed, paid)).toThrow(UnderpaidError);
+    expect(() => createTransaction(owed, paid)).toThrow(UnderpaidError);
   });
 });

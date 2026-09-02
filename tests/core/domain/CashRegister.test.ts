@@ -1,16 +1,20 @@
-import { Currencies } from '@core/domain/model/Currency';
-import { Money } from '@core/domain/model/Money';
-import { RegisterTransaction } from '@core/domain/model/RegisterTransaction';
-import { CashRegister } from '@core/domain/services/CashRegister';
+import {
+  createCashRegister,
+  createMoney,
+  createTransaction,
+  CURRENCIES,
+  formatDenomination,
+  isZeroMoney
+} from '@core/index';
 import { describe, expect, it } from 'vitest';
 
-describe('CashRegister Domain Service', () => {
-  const register = new CashRegister();
+describe('CashRegister (Functional Closure Coordinator)', () => {
+  const register = createCashRegister();
 
   describe('USD Transactions', () => {
     it('processes Sample 1: 2.12 owed, 3.00 paid -> greedy strategy, 88 cents', () => {
-      const tx = new RegisterTransaction(new Money(212), new Money(300));
-      const result = register.process(tx, Currencies.USD);
+      const tx = createTransaction(createMoney(212), createMoney(300));
+      const result = register(tx, CURRENCIES.USD);
 
       expect(result.strategyName).toBe('GreedyMinimumChange');
       expect(result.distribution.changeDue.minorUnits).toBe(88);
@@ -19,8 +23,8 @@ describe('CashRegister Domain Service', () => {
     });
 
     it('processes Sample 2: 1.97 owed, 2.00 paid -> greedy strategy, 3 cents', () => {
-      const tx = new RegisterTransaction(new Money(197), new Money(200));
-      const result = register.process(tx, Currencies.USD);
+      const tx = createTransaction(createMoney(197), createMoney(200));
+      const result = register(tx, CURRENCIES.USD);
 
       expect(result.strategyName).toBe('GreedyMinimumChange');
       expect(result.distribution.changeDue.minorUnits).toBe(3);
@@ -29,8 +33,8 @@ describe('CashRegister Domain Service', () => {
     });
 
     it('processes Sample 3: 3.33 owed, 5.00 paid -> random strategy, 167 cents', () => {
-      const tx = new RegisterTransaction(new Money(333), new Money(500));
-      const result = register.process(tx, Currencies.USD);
+      const tx = createTransaction(createMoney(333), createMoney(500));
+      const result = register(tx, CURRENCIES.USD);
 
       expect(result.strategyName).toBe('RandomChange');
       expect(result.distribution.changeDue.minorUnits).toBe(167);
@@ -38,23 +42,27 @@ describe('CashRegister Domain Service', () => {
     });
 
     it('processes exact payment on random path (3.00 owed, 3.00 paid -> 300 % 3 == 0 -> 0 change)', () => {
-      const tx = new RegisterTransaction(new Money(300), new Money(300));
-      const result = register.process(tx, Currencies.USD);
+      const tx = createTransaction(createMoney(300), createMoney(300));
+      const result = register(tx, CURRENCIES.USD);
 
       expect(result.strategyName).toBe('RandomChange');
-      expect(result.distribution.changeDue.isZero()).toBe(true);
+      expect(isZeroMoney(result.distribution.changeDue)).toBe(true);
       expect(result.distribution.entries).toHaveLength(0);
     });
   });
 
   describe('EUR Transactions', () => {
     it('processes EUR transaction: 1.33 owed, 2.00 paid -> greedy strategy, 67 cents EUR', () => {
-      const tx = new RegisterTransaction(new Money(133), new Money(200));
-      const result = register.process(tx, Currencies.EUR);
+      const tx = createTransaction(createMoney(133), createMoney(200));
+      const result = register(tx, CURRENCIES.EUR);
 
       expect(result.strategyName).toBe('GreedyMinimumChange');
       expect(result.distribution.changeDue.minorUnits).toBe(67);
-      expect(result.distribution.entries.map((e) => e.denomination.format(e.count))).toEqual([
+      expect(
+        result.distribution.entries.map((e) =>
+          formatDenomination(e.denomination, e.count)
+        )
+      ).toEqual([
         '1 50-cent coin',
         '1 10-cent coin',
         '1 5-cent coin',
@@ -63,8 +71,8 @@ describe('CashRegister Domain Service', () => {
     });
 
     it('processes EUR transaction on random path (3.33 owed, 5.00 paid -> 167 cents EUR)', () => {
-      const tx = new RegisterTransaction(new Money(333), new Money(500));
-      const result = register.process(tx, Currencies.EUR);
+      const tx = createTransaction(createMoney(333), createMoney(500));
+      const result = register(tx, CURRENCIES.EUR);
 
       expect(result.strategyName).toBe('RandomChange');
       expect(result.distribution.changeDue.minorUnits).toBe(167);

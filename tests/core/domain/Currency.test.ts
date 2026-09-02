@@ -1,36 +1,58 @@
-import { InvalidAmountError, InvalidCurrencyError } from '@core/domain/errors/DomainErrors';
-import { Currencies, Currency } from '@core/domain/model/Currency';
-import { Denomination } from '@core/domain/model/Denomination';
-import { Money } from '@core/domain/model/Money';
+import {
+  createCurrency,
+  createDenomination,
+  createMoney,
+  CURRENCIES,
+  InvalidAmountError,
+  InvalidCurrencyError,
+  parseCurrencyAmount
+} from '@core/index';
 import { describe, expect, it } from 'vitest';
 
-describe('Currency Value Object & Static Registry', () => {
+describe('Currency (Functional Value Object & Registry)', () => {
   describe('Structural Invariants', () => {
     it('creates Currency when an atomic 1-minor-unit denomination is present', () => {
-      const custom = new Currency('TEST', 'Test Currency', 'T', 2, [
-        new Denomination('TEST_10', new Money(10), 'ten', 'tens'),
-        new Denomination('TEST_1', new Money(1), 'one', 'ones')
-      ]);
+      const custom = createCurrency({
+        code: 'TEST',
+        name: 'Test Currency',
+        symbol: 'T',
+        minorUnitDigits: 2,
+        denominations: [
+          createDenomination({ code: 'TEST_10', value: createMoney(10), singularName: 'ten', pluralName: 'tens' }),
+          createDenomination({ code: 'TEST_1', value: createMoney(1), singularName: 'one', pluralName: 'ones' })
+        ]
+      });
       expect(custom.code).toBe('TEST');
       expect(custom.denominations).toHaveLength(2);
     });
 
     it('throws InvalidCurrencyError if no atomic 1-minor-unit denomination exists', () => {
-      expect(
-        () =>
-          new Currency('INVALID', 'No Penny', 'N', 2, [
-            new Denomination('INV_10', new Money(10), 'ten', 'tens'),
-            new Denomination('INV_5', new Money(5), 'five', 'fives')
-          ])
+      expect(() =>
+        createCurrency({
+          code: 'INVALID',
+          name: 'No Penny',
+          symbol: 'N',
+          minorUnitDigits: 2,
+          denominations: [
+            createDenomination({ code: 'INV_10', value: createMoney(10), singularName: 'ten', pluralName: 'tens' }),
+            createDenomination({ code: 'INV_5', value: createMoney(5), singularName: 'five', pluralName: 'fives' })
+          ]
+        })
       ).toThrow(InvalidCurrencyError);
     });
 
     it('automatically sorts denominations descending by value upon construction', () => {
-      const unsorted = new Currency('SORTED', 'Sorted', 'S', 2, [
-        new Denomination('S_1', new Money(1), 'one', 'ones'),
-        new Denomination('S_25', new Money(25), 'quarter', 'quarters'),
-        new Denomination('S_10', new Money(10), 'dime', 'dimes')
-      ]);
+      const unsorted = createCurrency({
+        code: 'SORTED',
+        name: 'Sorted',
+        symbol: 'S',
+        minorUnitDigits: 2,
+        denominations: [
+          createDenomination({ code: 'S_1', value: createMoney(1), singularName: 'one', pluralName: 'ones' }),
+          createDenomination({ code: 'S_25', value: createMoney(25), singularName: 'quarter', pluralName: 'quarters' }),
+          createDenomination({ code: 'S_10', value: createMoney(10), singularName: 'dime', pluralName: 'dimes' })
+        ]
+      });
 
       expect(unsorted.denominations[0]!.value.minorUnits).toBe(25);
       expect(unsorted.denominations[1]!.value.minorUnits).toBe(10);
@@ -38,9 +60,9 @@ describe('Currency Value Object & Static Registry', () => {
     });
   });
 
-  describe('Static Currencies Registry', () => {
-    it('Currencies.USD contains the canonical 5 denominations in descending order', () => {
-      const usd = Currencies.USD;
+  describe('Static CURRENCIES Registry', () => {
+    it('CURRENCIES.USD contains the canonical 5 denominations in descending order', () => {
+      const usd = CURRENCIES.USD;
       expect(usd.code).toBe('USD');
       expect(usd.symbol).toBe('$');
       expect(usd.minorUnitDigits).toBe(2);
@@ -48,8 +70,8 @@ describe('Currency Value Object & Static Registry', () => {
       expect(usd.denominations.map((d) => d.value.minorUnits)).toEqual([100, 25, 10, 5, 1]);
     });
 
-    it('Currencies.EUR contains the canonical 8 denominations in descending order', () => {
-      const eur = Currencies.EUR;
+    it('CURRENCIES.EUR contains the canonical 8 denominations in descending order', () => {
+      const eur = CURRENCIES.EUR;
       expect(eur.code).toBe('EUR');
       expect(eur.symbol).toBe('€');
       expect(eur.minorUnitDigits).toBe(2);
@@ -61,49 +83,55 @@ describe('Currency Value Object & Static Registry', () => {
   });
 
   describe('Currency-Aware Decimal Parsing', () => {
-    const usd = Currencies.USD;
+    const usd = CURRENCIES.USD;
 
     it('parses valid 2-decimal strings to integer minor units without float bugs', () => {
-      expect(usd.parse('2.13').minorUnits).toBe(213);
-      expect(usd.parse('3.00').minorUnits).toBe(300);
-      expect(usd.parse('0.05').minorUnits).toBe(5);
-      expect(usd.parse('0.01').minorUnits).toBe(1);
-      expect(usd.parse('0.00').minorUnits).toBe(0);
+      expect(parseCurrencyAmount(usd, '2.13').minorUnits).toBe(213);
+      expect(parseCurrencyAmount(usd, '3.00').minorUnits).toBe(300);
+      expect(parseCurrencyAmount(usd, '0.05').minorUnits).toBe(5);
+      expect(parseCurrencyAmount(usd, '0.01').minorUnits).toBe(1);
+      expect(parseCurrencyAmount(usd, '0.00').minorUnits).toBe(0);
     });
 
     it('pads single decimal digit fraction to 2 places (e.g. 2.1 -> 210 cents)', () => {
-      expect(usd.parse('2.1').minorUnits).toBe(210);
-      expect(usd.parse('0.5').minorUnits).toBe(50);
+      expect(parseCurrencyAmount(usd, '2.1').minorUnits).toBe(210);
+      expect(parseCurrencyAmount(usd, '0.5').minorUnits).toBe(50);
     });
 
     it('parses whole integer strings without decimal points (e.g. 2 -> 200 cents)', () => {
-      expect(usd.parse('2').minorUnits).toBe(200);
-      expect(usd.parse('10').minorUnits).toBe(1000);
+      expect(parseCurrencyAmount(usd, '2').minorUnits).toBe(200);
+      expect(parseCurrencyAmount(usd, '10').minorUnits).toBe(1000);
     });
 
     it('trims leading and trailing whitespace', () => {
-      expect(usd.parse('  2.13  ').minorUnits).toBe(213);
+      expect(parseCurrencyAmount(usd, '  2.13  ').minorUnits).toBe(213);
     });
 
     it('rejects invalid, negative, or malformed decimal strings with InvalidAmountError', () => {
-      expect(() => usd.parse('')).toThrow(InvalidAmountError);
-      expect(() => usd.parse('   ')).toThrow(InvalidAmountError);
-      expect(() => usd.parse('-1.00')).toThrow(InvalidAmountError);
-      expect(() => usd.parse('2.')).toThrow(InvalidAmountError);
-      expect(() => usd.parse('.5')).toThrow(InvalidAmountError);
-      expect(() => usd.parse('2.134')).toThrow(InvalidAmountError); // exceeds minorUnitDigits
-      expect(() => usd.parse('1e3')).toThrow(InvalidAmountError);
-      expect(() => usd.parse('abc')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, '')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, '   ')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, '-1.00')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, '2.')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, '.5')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, '2.134')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, '1e3')).toThrow(InvalidAmountError);
+      expect(() => parseCurrencyAmount(usd, 'abc')).toThrow(InvalidAmountError);
     });
 
     it('supports currencies with 0 minorUnitDigits (e.g. integer-only units)', () => {
-      const jpy = new Currency('JPY', 'Yen', '¥', 0, [
-        new Denomination('JPY_1000', new Money(1000), '1000 yen', '1000 yen'),
-        new Denomination('JPY_1', new Money(1), '1 yen', '1 yen')
-      ]);
+      const jpy = createCurrency({
+        code: 'JPY',
+        name: 'Yen',
+        symbol: '¥',
+        minorUnitDigits: 0,
+        denominations: [
+          createDenomination({ code: 'JPY_1000', value: createMoney(1000), singularName: '1000 yen', pluralName: '1000 yen' }),
+          createDenomination({ code: 'JPY_1', value: createMoney(1), singularName: '1 yen', pluralName: '1 yen' })
+        ]
+      });
 
-      expect(jpy.parse('500').minorUnits).toBe(500);
-      expect(() => jpy.parse('500.50')).toThrow(InvalidAmountError);
+      expect(parseCurrencyAmount(jpy, '500').minorUnits).toBe(500);
+      expect(() => parseCurrencyAmount(jpy, '500.50')).toThrow(InvalidAmountError);
     });
   });
 });

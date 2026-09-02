@@ -1,11 +1,15 @@
-import { InvariantViolationError } from '@core/domain/errors/DomainErrors';
-import { ChangeDistribution } from '@core/domain/model/ChangeDistribution';
-import { Currencies } from '@core/domain/model/Currency';
-import { Money } from '@core/domain/model/Money';
+import {
+  createChangeDistribution,
+  createMoney,
+  CURRENCIES,
+  InvariantViolationError,
+  isZeroMoney,
+  MONEY_ZERO
+} from '@core/index';
 import { describe, expect, it } from 'vitest';
 
-describe('ChangeDistribution Value Object', () => {
-  const [dollar, quarter, dime, nickel, penny] = Currencies.USD.denominations;
+describe('ChangeDistribution (Functional Value Object)', () => {
+  const [dollar, quarter, dime, nickel, penny] = CURRENCIES.USD.denominations;
 
   it('creates valid distribution when entries sum exactly matches changeDue', () => {
     // 3 quarters (75¢) + 1 dime (10¢) + 3 pennies (3¢) = 88¢
@@ -14,7 +18,7 @@ describe('ChangeDistribution Value Object', () => {
       { denomination: dime!, count: 1 },
       { denomination: penny!, count: 3 }
     ];
-    const dist = new ChangeDistribution(entries, new Money(88));
+    const dist = createChangeDistribution(entries, createMoney(88));
 
     expect(dist.changeDue.minorUnits).toBe(88);
     expect(dist.totalValue.minorUnits).toBe(88);
@@ -23,18 +27,18 @@ describe('ChangeDistribution Value Object', () => {
   });
 
   it('creates valid empty distribution when changeDue is zero', () => {
-    const dist = new ChangeDistribution([], Money.ZERO);
+    const dist = createChangeDistribution([], MONEY_ZERO);
     expect(dist.entries).toHaveLength(0);
-    expect(dist.changeDue.isZero()).toBe(true);
-    expect(dist.totalValue.isZero()).toBe(true);
+    expect(isZeroMoney(dist.changeDue)).toBe(true);
+    expect(isZeroMoney(dist.totalValue)).toBe(true);
   });
 
   it('throws InvariantViolationError if zero changeDue has non-empty entries', () => {
     expect(
       () =>
-        new ChangeDistribution(
+        createChangeDistribution(
           [{ denomination: penny!, count: 1 }],
-          Money.ZERO
+          MONEY_ZERO
         )
     ).toThrow(InvariantViolationError);
   });
@@ -42,17 +46,17 @@ describe('ChangeDistribution Value Object', () => {
   it('throws InvariantViolationError when entry count is zero or negative', () => {
     expect(
       () =>
-        new ChangeDistribution(
+        createChangeDistribution(
           [{ denomination: quarter!, count: 0 }],
-          Money.ZERO
+          MONEY_ZERO
         )
     ).toThrow(InvariantViolationError);
 
     expect(
       () =>
-        new ChangeDistribution(
+        createChangeDistribution(
           [{ denomination: quarter!, count: -1 }],
-          new Money(25)
+          createMoney(25)
         )
     ).toThrow(InvariantViolationError);
   });
@@ -60,12 +64,12 @@ describe('ChangeDistribution Value Object', () => {
   it('throws InvariantViolationError when duplicate denominations are provided', () => {
     expect(
       () =>
-        new ChangeDistribution(
+        createChangeDistribution(
           [
             { denomination: quarter!, count: 1 },
             { denomination: quarter!, count: 1 }
           ],
-          new Money(50)
+          createMoney(50)
         )
     ).toThrow(InvariantViolationError);
   });
@@ -74,18 +78,18 @@ describe('ChangeDistribution Value Object', () => {
     // Expected 100, provided 75
     expect(
       () =>
-        new ChangeDistribution(
+        createChangeDistribution(
           [{ denomination: quarter!, count: 3 }],
-          new Money(100)
+          createMoney(100)
         )
     ).toThrow(InvariantViolationError);
 
     // Expected 50, provided 75
     expect(
       () =>
-        new ChangeDistribution(
+        createChangeDistribution(
           [{ denomination: quarter!, count: 3 }],
-          new Money(50)
+          createMoney(50)
         )
     ).toThrow(InvariantViolationError);
   });
@@ -96,7 +100,7 @@ describe('ChangeDistribution Value Object', () => {
       { denomination: dollar!, count: 1 },
       { denomination: nickel!, count: 1 }
     ];
-    const dist = new ChangeDistribution(unsortedEntries, new Money(106));
+    const dist = createChangeDistribution(unsortedEntries, createMoney(106));
 
     expect(dist.entries[0]!.denomination.code).toBe('USD_DOLLAR');
     expect(dist.entries[1]!.denomination.code).toBe('USD_NICKEL');

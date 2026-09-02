@@ -113,3 +113,55 @@ Verdict: **APPROVE — no blocking findings.** All 10 Loop 1 items are materiall
 
 Phase 2 plan is approved for Lee's explicit approval gate.
 
+---
+
+### Turn 6
+
+#### USER (via Antigravity Dual-Agent Plan Review Protocol)
+```text
+Peer Review under the Dual-Agent Plan Review rule for Phase 2.5: Core Domain Functional Refactoring. Please inspect docs/plans/phase_2_5_functional_refactoring.md along with docs/decision_log.md (ADR 13). Provide a rigorous critique of: 1) Functional domain modeling (pure readonly data interfaces Money, Denomination, Currency, RegisterTransaction, ChangeDistribution and factory functions), 2) Functional strategies (calculateGreedyChange, createRandomChangeStrategy with clamped PRNG, ChangeStrategy interface), 3) Functional services (createStrategySelector closure, processTransaction), 4) Actionable findings (if any). IMPORTANT: If the plan is sound, complete, and has no actionable findings or blocking gaps, state clearly: VERDICT: APPROVE (NO ACTIONABLE FINDINGS) so we can conclude in 1 loop.
+```
+
+#### ASSISTANT (Claude Code Peer Reviewer)
+**Actions Taken:**
+1. Read `docs/plans/phase_2_5_functional_refactoring.md` and `docs/decision_log.md` (ADR 13).
+2. Read current class-based implementation: `Money`, `Denomination`, `Currency`, `RegisterTransaction`, `ChangeDistribution`, `GreedyMinimumChangeStrategy`, `RandomChangeStrategy`, `StrategySelector`, `CashRegister`, `IChangeCalculationStrategy`, `src/core/index.ts`.
+3. Read tests `RandomChangeStrategy.test.ts`, `StrategySelector.test.ts`; enumerated all 9 core-domain suites (~68 tests).
+4. Grepped the repo for external consumers of the domain (`new Money|new Currency|...`, `@core` imports in `src/web/`): confirmed only `src/core/` + `tests/core/domain/` consume it today; `src/web/` and `src/core/smoke.ts` do not; no `src/cli/` exists yet.
+
+**Response & Clarifying Questions:**
+Verdict: **CHANGES REQUESTED** — 5 actionable items (A1–A5), 6 nits (N1–N6).
+- **A1 (High):** Structural typing lets object literals bypass every factory's validation. The `Currency` 1-minor-unit invariant is load-bearing for `calculateRandomChange` termination/`calculateGreedyChange` completeness — a hand-built `Currency` literal without it causes an unhandled `TypeError` crash (empty `validDenoms`), not a graceful error. `addMoney`/`subtractMoney` lose result re-validation unless they route through `createMoney`. Recommend branded types for `Money` and `Currency`, or defensive guards in strategies + arithmetic; at minimum the plan must acknowledge the trade-off and pick a mitigation.
+- **A2 (Med):** Migration scope is actually contained (verified no external consumers), but the plan doesn't say so or how it was checked; also needs explicit disposition of `IChangeCalculationStrategy.ts` (rename/delete) and barrel-path updates.
+- **A3 (Med):** `createStrategySelector` (4 optional positional params, two same-typed `ChangeStrategy` args transposable), `createCurrency` (5 positional), `createDenomination` (adjacent `singularName`/`pluralName`) — use options objects.
+- **A4 (Med):** `processTransaction` as a bare function with per-call `selector?`/`currency?` breaks the closure pattern used for `createStrategySelector` and rebuilds a `Math.random` selector every call. Recommend `createCashRegister({...}) => (tx) => TransactionResult`.
+- **A5 (Med):** Verification section inconsistent ("9 suites" vs "69 tests" vs actual ~68) and thin. Must state behavioral assertions are preserved (divisible-by-3 branch, ≥1000-run random invariant, PRNG 0/near-1/1.0 boundaries, EUR random path, zero-change, all-denominations greedy), that `instanceof` strategy assertions + the `extends GreedyMinimumChangeStrategy` custom-rule test get rewritten, and add an explicit 100%-coverage / no-new-uncovered-branch gate.
+- **Nits:** N1 freeze consistency (`MONEY_ZERO` frozen, factories not); N2 `Currencies`→`CURRENCIES`/`USD_CURRENCY` redundant surface; N3 confirm no `toString` coercion sites; N4 document non-uniform random distribution in ADR 13; N5 restate random termination argument in the plan; N6 keep `isDivisibleMoney` divisor guard (`0` → throw, not `NaN`).
+
+Errors-stay-classes decision and the overall FP direction are sound. Recommend one revision loop addressing A1 + A4 substantively and folding A2/A3/A5 into the plan text.
+
+---
+
+### Turn 7
+
+#### USER (via Antigravity Dual-Agent Plan Review Protocol)
+```text
+Peer Review Loop 2 (Final) under the Dual-Agent Plan Review rule for Phase 2.5: Core Domain Functional Refactoring. I have updated docs/plans/phase_2_5_functional_refactoring.md addressing all 5 items from Loop 1: 1) A1: Branded types (__brand: 'Money' and 'Currency') to prevent literal bypass, addMoney/subtractMoney route through createMoney, and defensive non-empty check in strategies. 2) A2: Documented grep-verified migration scope (only src/core and tests/core/domain), and file renames/removals. 3) A3: Options objects for factories with >2 or same-typed params (CreateCurrencyOptions, CreateDenominationOptions, StrategySelectorOptions). 4) A4: createCashRegister closure factory matching createStrategySelector. 5) A5: Pinned 69 tests across 10 files, detailed test migration hazards (.name assertion, ChangeStrategy object instead of class subclass), 100% coverage gate. Also incorporated N1-N6 (Object.freeze on factory outputs, single CURRENCIES export, formatMoney, non-uniform distribution note, termination argument restated, isDivisibleMoney divisor guard). Please inspect and state your final review verdict.
+```
+
+#### ASSISTANT (Claude Code Peer Reviewer)
+**Actions Taken:**
+1. Re-read `docs/plans/phase_2_5_functional_refactoring.md` in full and checked each of A1–A5 and N1–N6 against the revised text.
+2. Verified factual claims against the repo: `tests/core/domain/` holds 9 suites + `tests/smoke.test.ts` = 10 files / 69 `it`/`test` cases (plan's "69 tests across 10 files" now matches); `InvalidCurrencyError` and `InvalidDivisorError` already exist in `DomainErrors.ts` for the strategy termination guard and divisor guard.
+3. Walked the branded-type mitigation (`__brand` on `Money`/`Currency`, `addMoney`/`subtractMoney` re-routing through `createMoney`, `validDenoms.length === 0` → `InvalidCurrencyError`) and the `createCashRegister` closure signature.
+
+**Response & Clarifying Questions:**
+Verdict: **APPROVE — no blocking findings.** All five Loop 1 actionable items (A1–A5) are materially resolved and N1–N6 are folded in. Four non-blocking items to carry into implementation (not a third loop — the 2-loop bound is reached):
+- **C1:** ADR 13 in `docs/decision_log.md` still omits the non-uniform random-distribution sentence that N4 asked to land *there*; it currently lives only in the plan (§2.3). Add one line to ADR 13.
+- **C2:** §3 item 7 hedges with "backward-compatible adapters if needed." Scope is verified contained (zero external consumers), so commit to no adapters and delete the hedge to keep the migration clean.
+- **C3:** The plan shows `isDivisibleMoney(m, divisor)` signature but not its guard behavior. State that it throws `InvalidDivisorError` on non-integer / `< 1` divisor, consistent with ADR 12 and the Phase 2 N3 nit, so `%` can never yield `NaN`.
+- **C4:** Confirm `formatMoney` is a diagnostic-only helper ("N minor units") and that no presentation path depends on it — currency-aware, pluralized formatting must stay in the denomination/currency layer.
+
+Phase 2.5 plan is approved for Lee's explicit approval gate.
+
+

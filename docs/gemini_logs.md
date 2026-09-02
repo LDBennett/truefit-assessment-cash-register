@@ -302,3 +302,66 @@ Proceed
 **Response & Clarifying Questions:**
 (Presented Phase 2 completion report, verification metrics, and requested approval to begin Phase 3: Application & CLI Layer.)
 
+---
+
+### Turn 13
+
+#### USER
+```text
+Before you consult Claude, take a look at the phase_3 plan again youself since there has been a lot of code added. Also, while the class based stuff does work, I do prefer functional overall. Thoughts?
+```
+*(User subsequent note: "how about this. Make a phase 2.5 which addresses converting to functional first THEN we'll move to 3")*
+
+#### ASSISTANT
+**Actions Taken:**
+1. Evaluated functional vs. class-based architecture in TypeScript: pure functions provide true SRP, zero runtime mutation, automatic tree-shaking, and direct compatibility with React hooks in Phase 4.
+2. Created Phase 2.5 plan ([docs/plans/phase_2_5_functional_refactoring.md](file:///C:/Users/Lee/Documents/Code%20Sandbox/truefit-assessment-cash-register/docs/plans/phase_2_5_functional_refactoring.md)) specifying branded types (`Money`, `Currency`), pure functions (`createMoney`, `addMoney`, `subtractMoney`, `parseCurrencyAmount`, `createTransaction`, `createChangeDistribution`), functional strategies (`calculateGreedyChange`, `createRandomChangeStrategy`), and closure factories (`createStrategySelector`, `createCashRegister`).
+3. Updated [docs/index.md](file:///C:/Users/Lee/Documents/Code%20Sandbox/truefit-assessment-cash-register/docs/index.md), [docs/progress.md](file:///C:/Users/Lee/Documents/Code%20Sandbox/truefit-assessment-cash-register/docs/progress.md), and [docs/decision_log.md](file:///C:/Users/Lee/Documents/Code%20Sandbox/truefit-assessment-cash-register/docs/decision_log.md) (Decision 13).
+4. Conducted Dual-Agent Plan Review with Claude Code:
+   - Loop 1: Claude requested nominal branding (A1) to prevent literal bypass of invariants, grep scope verification (A2), options objects for factories with >2 parameters (A3), closure symmetry for `createCashRegister` (A4), and precise test matrix mapping (A5).
+   - Loop 2: Claude evaluated revisions and issued **VERDICT: APPROVE — no blocking findings**.
+5. Incorporated non-blocking items (non-uniform random partition note in ADR 13, diagnostic-only `formatMoney`, clean file disposition).
+6. Updated `implementation_plan.md` artifact and requested Lee's explicit approval before proceeding with Phase 2.5 refactoring.
+
+**Response & Clarifying Questions:**
+(Presented the Dual-Agent Review consensus for Phase 2.5 and requested Lee's explicit approval to execute Phase 2.5.)
+
+---
+
+### Turn 14
+
+#### USER
+```text
+The dir structure for each domain should have an index.ts, types, and src structure so imports will need to be adjusted as well
+```
+*(User subsequent notes: Evaluated pros/cons of Options 1, 2, and 3; user selected: "got with Option 2", then authorized "proceed")*
+
+#### ASSISTANT
+**Actions Taken:**
+1. Structured `src/core/domain/` into 4 cohesive sub-domains following Option 2:
+   - `src/core/domain/errors/`: `index.ts`, `types/index.ts`, `src/DomainErrors.ts`.
+   - `src/core/domain/currency/`: `index.ts`, `types/index.ts`, `src/money.ts`, `src/denomination.ts`, `src/currency.ts`.
+   - `src/core/domain/transaction/`: `index.ts`, `types/index.ts`, `src/transaction.ts`, `src/distribution.ts`.
+   - `src/core/domain/calculation/`: `index.ts`, `types/index.ts`, `src/changeStrategy.ts`, `src/strategySelector.ts`, `src/cashRegister.ts`.
+2. Implemented pure functional architecture across all sub-domains:
+   - Data shapes with nominal branding (`__brand: 'Money'`, `__brand: 'Currency'`).
+   - Pure factory functions with options objects and `Object.freeze` on outputs (`createMoney`, `createDenomination`, `createCurrency`, `createTransaction`, `createChangeDistribution`).
+   - Pure arithmetic functions (`addMoney`, `subtractMoney`, `equalsMoney`, `isDivisibleMoney`, etc.) re-routing through `createMoney`.
+   - Functional strategies (`calculateGreedyChange`, `calculateRandomChange` with clamped PRNG and empty-denomination defensive guards).
+   - Closure factories (`createStrategySelector`, `createCashRegister`).
+3. Cleanly removed obsolete OOP class directories (`model/`, `strategies/`, `services/`).
+4. Updated public barrel export in `src/core/index.ts`.
+5. Updated all 9 unit test suites in `tests/core/domain/` to exercise functional APIs.
+6. Executed full automated verification suite:
+   - `pnpm run typecheck` (`tsc -b`) -> 0 errors; declaration files emitted to `dist/types/`.
+   - `pnpm run lint` (`eslint .`) -> 0 errors.
+   - `pnpm test` (`vitest run`) -> 72/72 passed (10/10 test files).
+   - `pnpm run test:coverage` -> **100% Statements, 100% Branches, 100% Functions, 100% Lines** across all files.
+   - `pnpm run build` (`vite build && tsc -b`) -> built in 584ms with `dist/types/` intact.
+7. Updated `docs/progress.md`, `docs/decision_log.md` (ADR 13), and `walkthrough.md`.
+
+**Response & Clarifying Questions:**
+(Presented Phase 2.5 completion report, verified metrics, and requested approval to begin Phase 3: Application & CLI Layer.)
+
+
+

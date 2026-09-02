@@ -1,16 +1,26 @@
-import { Currencies } from '@core/domain/model/Currency';
-import { Money } from '@core/domain/model/Money';
-import { GreedyMinimumChangeStrategy } from '@core/domain/strategies/GreedyMinimumChangeStrategy';
+import {
+  calculateGreedyChange,
+  createMoney,
+  CURRENCIES,
+  greedyMinimumChangeStrategy,
+  isZeroMoney,
+  MONEY_ZERO
+} from '@core/index';
 import { describe, expect, it } from 'vitest';
 
-describe('GreedyMinimumChangeStrategy', () => {
-  const strategy = new GreedyMinimumChangeStrategy();
+describe('GreedyMinimumChangeStrategy (Functional)', () => {
+  describe('Strategy Metadata', () => {
+    it('provides standard strategy metadata', () => {
+      expect(greedyMinimumChangeStrategy.name).toBe('GreedyMinimumChange');
+      expect(typeof greedyMinimumChangeStrategy.calculate).toBe('function');
+    });
+  });
 
   describe('USD Calculations', () => {
-    const usd = Currencies.USD;
+    const usd = CURRENCIES.USD;
 
     it('calculates minimum coins for 88 cents (Sample 1: 2.12 owed, 3.00 paid)', () => {
-      const dist = strategy.calculate(new Money(88), usd);
+      const dist = calculateGreedyChange(createMoney(88), usd);
 
       expect(dist.entries).toHaveLength(3);
       expect(dist.entries[0]!.denomination.code).toBe('USD_QUARTER');
@@ -22,7 +32,7 @@ describe('GreedyMinimumChangeStrategy', () => {
     });
 
     it('calculates minimum coins for 3 cents (Sample 2: 1.97 owed, 2.00 paid)', () => {
-      const dist = strategy.calculate(new Money(3), usd);
+      const dist = calculateGreedyChange(createMoney(3), usd);
 
       expect(dist.entries).toHaveLength(1);
       expect(dist.entries[0]!.denomination.code).toBe('USD_PENNY');
@@ -30,13 +40,13 @@ describe('GreedyMinimumChangeStrategy', () => {
     });
 
     it('returns empty distribution for 0 cents (exact payment)', () => {
-      const dist = strategy.calculate(Money.ZERO, usd);
+      const dist = calculateGreedyChange(MONEY_ZERO, usd);
       expect(dist.entries).toHaveLength(0);
-      expect(dist.totalValue.isZero()).toBe(true);
+      expect(isZeroMoney(dist.totalValue)).toBe(true);
     });
 
     it('exercises all denominations at once ($1.41 = 1 dollar, 1 quarter, 1 dime, 1 nickel, 1 penny)', () => {
-      const dist = strategy.calculate(new Money(141), usd);
+      const dist = calculateGreedyChange(createMoney(141), usd);
 
       expect(dist.entries).toHaveLength(5);
       expect(dist.entries.map((e) => `${e.count} ${e.denomination.singularName}`)).toEqual([
@@ -50,10 +60,10 @@ describe('GreedyMinimumChangeStrategy', () => {
   });
 
   describe('EUR Calculations', () => {
-    const eur = Currencies.EUR;
+    const eur = CURRENCIES.EUR;
 
     it('calculates minimum coins for 67 cents EUR (1.33 owed, 2.00 paid)', () => {
-      const dist = strategy.calculate(new Money(67), eur);
+      const dist = calculateGreedyChange(createMoney(67), eur);
 
       // 67 cents = 50 + 10 + 5 + 2
       expect(dist.entries).toHaveLength(4);
@@ -68,7 +78,7 @@ describe('GreedyMinimumChangeStrategy', () => {
     });
 
     it('exercises all EUR denominations at once (388 cents = 200+100+50+20+10+5+2+1)', () => {
-      const dist = strategy.calculate(new Money(388), eur);
+      const dist = calculateGreedyChange(createMoney(388), eur);
 
       expect(dist.entries).toHaveLength(8);
       expect(dist.entries.map((e) => e.count)).toEqual([1, 1, 1, 1, 1, 1, 1, 1]);

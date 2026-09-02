@@ -135,7 +135,19 @@ For overall architectural structure, see [`docs/architecture.md`](file:///C:/Use
 - **Context:** During Dual-Agent Plan Review for Phase 2, Claude noted that naive value strings for EUR (e.g. `"2 euros"`) produced ungrammatical counts like `"3 2 euros"` or `"1 50 cents"`, and that decimal-to-minor-unit parsing conceptually belongs with `Currency` which knows its exponent. Lee confirmed the physical coin format and currency-aware parsing.
 - **Evaluation / Rationale:** The physical coin naming model is grammatically natural in English, provides clean singular/plural distinctions, and faithfully reflects a cashier's physical drawer. Moving decimal parsing to `Currency` keeps `Money` focused purely on integer arithmetic while cleanly supporting non-2-decimal currencies in the future.
 
+---
 
+## 13. Functional Core Architecture & Data/Behavior Separation (Phase 2.5)
 
+- **Choice:** Refactor the core domain from class-based OOP Value Objects and Services into pure functional TypeScript (immutable interface definitions, pure standalone functions, functional strategies, and closure-based service factories).
+- **Context:** User expressed an explicit preference for functional TypeScript over class-based OOP prior to Phase 3.
+- **Evaluation / Rationale:**
+  - In TypeScript, functional programming provides direct separation of state (readonly data types) from behavior (pure functions).
+  - Eliminates unnecessary `new` instantiation boilerplate across callers.
+  - Improves tree-shakeability for web bundlers.
+  - Aligns directly with React and Feature-Sliced Design (FSD) for Phase 4, where pure functions can be imported into hooks, memoized, or mapped across collections without object lifecycle management.
+  - Retains domain error classes (`DomainError` hierarchy) for clean `instanceof` exception catching and stack trace preservation.
+  - Random Partition Distribution: Acknowledged that iterative random denomination selection is non-uniform across the space of all valid integer partitions (favoring larger counts of initially selected denominations); this fully satisfies the assessment requirement for a valid random breakdown whose sum strictly equals the owed change.
+  - Directory Granularity (Option 2): Organized `src/core/domain/` by cohesive bounded sub-domains (`currency/`, `transaction/`, `calculation/`, `errors/`), each structured with `index.ts` (barrel export), `types/index.ts` (contracts), and `src/` (pure function implementations). Provides high cohesion, zero circular dependencies, and eliminates folder proliferation.
 
 
