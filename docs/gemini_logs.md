@@ -656,6 +656,33 @@ I'm getting multiple versions of pnpm specified in github
 **Response & Clarifying Questions:**
 (Explained the resolution and confirmed that `package.json` is now the sole source of truth for the pnpm version in CI.)
 
+---
+
+### Turn 25
+
+#### USER
+```text
+Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Run pnpm/action-setup@v4
+Running self-installer...
+Error: Something went wrong, self-installer exits with code 1
+Installation Completed!
+```
+
+#### ASSISTANT
+**Actions Taken:**
+1. Identified the root cause:
+   - `pnpm/action-setup@v4` relies on an external self-installer shell script (`install.sh` / standalone binary) that fails when trying to install `pnpm@11` on GitHub Actions runners.
+   - For `pnpm` v11+ and modern Node (Node 24), the standard, official, and most resilient solution is Node's built-in **Corepack** (`corepack enable`).
+2. Updated `.github/workflows/ci.yml`:
+   - Set up Node 24 first via `actions/setup-node@v4`.
+   - Replaced `pnpm/action-setup@v4` entirely with `run: corepack enable`.
+   - Corepack natively activates `pnpm@11.1.3` directly from `packageManager` in `package.json` with zero third-party action dependencies or self-installer scripts.
+
+**Response & Clarifying Questions:**
+(Explained the switch to native Node 24 Corepack in CI.)
+
+
 
 
 
