@@ -15,3 +15,7 @@ I know this is just a simple assessment, but if this were an actual app for a pe
 ## 4. Probably should have done a handoff more often
 
 Between some of the phases, I could have made a handoff doc and made token comsumption shrink a bit.
+
+## 5. AI use in project
+
+AI use is kind of a double edged sword for me now. On the one hand, the AI process I now have is great to get code out there, but on the other hand, I'm really not doing as much manual work with it. If this were a full scale app, I still would start it in a similar fashion. I may have split it up a bit more as well. But eventually when applying new features to a growing code base, I think the AI tools would fail much more often. Overall, as I stated above, this is how I would start greenfield apps now. If you did want to see a more manual and less AI-generated appraoch to this, please let me know!
